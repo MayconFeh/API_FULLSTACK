@@ -18,4 +18,4 @@ ENV PORT=3000
 EXPOSE $PORT
 
 # Comando para iniciar o aplicativo
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
