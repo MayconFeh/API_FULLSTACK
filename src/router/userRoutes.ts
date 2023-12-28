@@ -18,5 +18,6 @@ userRouter.delete(
 );
 userRouter.post('/:userId/contact/', validateToken, validateBody(contactSchemaCreate), checkDuplicateContact, userController.addContact);
 userRouter.delete('/:userId/contact/:contactId/', validateToken, checkUserId, userController.removeContact);
-
+userRouter.get("/:userId", validateToken, checkUserId, userController.reatrive);
+userRouter.get("/:userId/contact/:contactId", validateToken, checkUserId, userController.reatriveContact);
 export default userRouter;

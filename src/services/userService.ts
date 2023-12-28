@@ -28,10 +28,23 @@ const createUser = async (payload: CreateUser): Promise<ReturnUser> => {
 const readUsers = async (): Promise<ReturnUser[]> => {
   const userRepository: Repository<User> = AppDataSource.getRepository(User);
 
-  const users: User[] = await userRepository.find({ relations: ["contacts"]});
+  const users: User[] = await userRepository.find({ relations: ["contacts"] });
 
+  const result: ReturnUser[] = userSchemaRead.parse(users);
 
-  const result: ReturnUser[] = userSchemaRead.parse(users)
+  return result;
+};
+
+const reatriveUser = async (userId: number): Promise<ReturnUser> => {
+  const userRepository: Repository<User> = AppDataSource.getRepository(User);
+
+  const user: User | null = await userRepository
+    .createQueryBuilder("user")
+    .leftJoinAndSelect("user.contacts", "contacts")
+    .where("user.id = :userId", { userId })
+    .getOne();
+
+  const result: ReturnUser = userSchemaReturn.parse(user);
 
   return result;
 };
@@ -46,14 +59,15 @@ const updateUser = async (
   const foundUser: User | null = await repository.findOne({
     where: {
       id: id,
-    },relations:{contacts:true}
+    },
+    relations: { contacts: true },
   });
   const user: User = repository.create({
     ...foundUser,
     ...payload,
   });
   console.log(user);
-  
+
   await repository.save(user);
 
   const result: ReturnUser = userSchemaReturn.parse(user);
@@ -76,7 +90,8 @@ const addContact = async (
   payload: CreateContact
 ): Promise<ReturnUser> => {
   const userRepository: Repository<User> = AppDataSource.getRepository(User);
-  const contactRepository: Repository<Contact> = AppDataSource.getRepository(Contact);
+  const contactRepository: Repository<Contact> =
+    AppDataSource.getRepository(Contact);
 
   const user: User | null = await userRepository
     .createQueryBuilder("user")
@@ -99,6 +114,50 @@ const addContact = async (
   await userRepository.save(user);
 
   const result: ReturnUser = userSchemaReturn.parse(user);
+
+  return result;
+};
+
+const reatriveContact = async (
+  userId: number,
+  contactId: number
+): Promise<ReturnUser | null> => {
+  const userRepository: Repository<User> = AppDataSource.getRepository(User);
+
+  const user: User | null = await userRepository
+    .createQueryBuilder("user")
+    .leftJoinAndSelect("user.contacts", "contacts")
+    .where("user.id = :userId", { userId })
+    .getOne();
+
+  if (!user) {
+    return null;
+  }
+
+  const contact = user.contacts.find((c) => c.id === contactId);
+
+  if (!contact) {
+    return null;
+  }
+
+  const result: ReturnUser = {
+    id: user.id,
+    full_name: user.full_name,
+    email: user.email,
+    phone_number: user.phone_number,
+    registration_date: user.registration_date,
+    delete_date: user.delete_date,
+    contacts: [
+      {
+        id: contact.id,
+        full_name: contact.full_name,
+        email: contact.email,
+        phone_number: contact.phone_number,
+        registration_date: contact.registration_date,
+        delete_date: contact.delete_date,
+      },
+    ],
+  };
 
   return result;
 };
@@ -160,4 +219,6 @@ export default {
   addContact,
   destroyUser,
   removeContact,
+  reatriveUser,
+  reatriveContact,
 };
