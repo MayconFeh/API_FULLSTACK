@@ -7,6 +7,7 @@ const sessionSchemaCreate = z.object({
 
 const sessionSchemaReturn = z.object({
   token: z.string(),
+  userId: z.number()
 });
 
 export { sessionSchemaCreate, sessionSchemaReturn };

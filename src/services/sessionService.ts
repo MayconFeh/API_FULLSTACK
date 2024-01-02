@@ -38,7 +38,7 @@ const login = async (payload: SessionCreate): Promise<SessionReturn> => {
     }
   );
 
-  return { token };
+  return { token , userId:user.id};
 };
 
 export default { login };
